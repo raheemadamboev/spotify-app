@@ -12,6 +12,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ServiceComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.scopes.ServiceScoped
+import xyz.teamgravity.spotify.helper.firebase.Firestore
 
 @Module
 @InstallIn(ServiceComponent::class)
@@ -36,4 +37,8 @@ object ServiceModule {
     @Provides
     fun provideDataSourceFactory(@ApplicationContext context: Context) =
         DefaultDataSourceFactory(context, Util.getUserAgent(context, "Spotify"))
+
+    @ServiceScoped
+    @Provides
+    fun provideMusicDatabase() = Firestore.Songs()
 }
