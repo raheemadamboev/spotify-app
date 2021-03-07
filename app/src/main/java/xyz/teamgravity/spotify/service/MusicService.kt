@@ -13,6 +13,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import xyz.teamgravity.spotify.MusicNotificationManager
+import xyz.teamgravity.spotify.MusicPlayerNotificationListener
 import javax.inject.Inject
 
 private const val SERVICE_TAG = "music_service"
@@ -30,8 +32,12 @@ class MusicService : MediaBrowserServiceCompat() {
     private val serviceJob = Job()
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
 
+    private lateinit var musicNotificationManager: MusicNotificationManager
+
     private lateinit var mediaSession: MediaSessionCompat
     private lateinit var mediaSessionConnector: MediaSessionConnector
+
+    var isForegroundService = false
 
     override fun onCreate() {
         super.onCreate()
@@ -46,6 +52,14 @@ class MusicService : MediaBrowserServiceCompat() {
         }
 
         sessionToken = mediaSession.sessionToken
+
+        musicNotificationManager = MusicNotificationManager(
+            this,
+            mediaSession.sessionToken,
+            MusicPlayerNotificationListener(this),
+        ) {
+            // current song switches
+        }
 
         mediaSessionConnector = MediaSessionConnector(mediaSession).apply {
             setPlayer(exoPlayer)
