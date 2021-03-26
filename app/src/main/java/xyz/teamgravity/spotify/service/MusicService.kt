@@ -3,6 +3,7 @@ package xyz.teamgravity.spotify.service
 import android.app.PendingIntent
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import androidx.media.MediaBrowserServiceCompat
 import com.google.android.exoplayer2.SimpleExoPlayer
@@ -13,8 +14,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import xyz.teamgravity.spotify.FirebaseMusicSource
 import xyz.teamgravity.spotify.MusicNotificationManager
-import xyz.teamgravity.spotify.MusicPlayerNotificationListener
+import xyz.teamgravity.spotify.helper.callback.MusicPlaybackPreparer
+import xyz.teamgravity.spotify.helper.callback.MusicPlayerEventListener
+import xyz.teamgravity.spotify.helper.callback.MusicPlayerNotificationListener
 import javax.inject.Inject
 
 private const val SERVICE_TAG = "music_service"
@@ -28,6 +32,9 @@ class MusicService : MediaBrowserServiceCompat() {
     @Inject
     lateinit var exoPlayer: SimpleExoPlayer
 
+    @Inject
+    lateinit var firebaseMusicSource: FirebaseMusicSource
+
     // special coroutine scope for service
     private val serviceJob = Job()
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
@@ -38,6 +45,8 @@ class MusicService : MediaBrowserServiceCompat() {
     private lateinit var mediaSessionConnector: MediaSessionConnector
 
     var isForegroundService = false
+
+    private var currentPlayingSong: MediaMetadataCompat? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -61,9 +70,29 @@ class MusicService : MediaBrowserServiceCompat() {
             // current song switches
         }
 
+
+        val musicPlaybackPreparer = MusicPlaybackPreparer(firebaseMusicSource) {
+            // every time user chooses new song
+            currentPlayingSong = it
+            preparePlayer(firebaseMusicSource.songs, it, true)
+        }
+
         mediaSessionConnector = MediaSessionConnector(mediaSession).apply {
+            setPlaybackPreparer(musicPlaybackPreparer)
             setPlayer(exoPlayer)
         }
+
+        exoPlayer.addListener(MusicPlayerEventListener(this))
+
+        musicNotificationManager.showNotification(exoPlayer)
+    }
+
+    private fun preparePlayer(songs: List<MediaMetadataCompat>, itemToPlay: MediaMetadataCompat?, playNow: Boolean) {
+        val currentSongIndex = if (currentPlayingSong == null) 0 else songs.indexOf(itemToPlay)
+
+        exoPlayer.prepare(firebaseMusicSource.asMediaSource(dataSourceFactory))
+        exoPlayer.seekTo(currentSongIndex, 0L)
+        exoPlayer.playWhenReady = playNow
     }
 
     override fun onGetRoot(clientPackageName: String, clientUid: Int, rootHints: Bundle?): BrowserRoot? {

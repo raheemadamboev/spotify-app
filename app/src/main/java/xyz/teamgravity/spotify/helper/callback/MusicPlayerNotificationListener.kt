@@ -1,9 +1,10 @@
-package xyz.teamgravity.spotify
+package xyz.teamgravity.spotify.helper.callback
 
 import android.app.Notification
 import android.content.Intent
 import androidx.core.content.ContextCompat
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
+import xyz.teamgravity.spotify.MusicNotificationManager
 import xyz.teamgravity.spotify.service.MusicService
 
 class MusicPlayerNotificationListener(
