@@ -20,6 +20,7 @@ import xyz.teamgravity.spotify.MusicNotificationManager
 import xyz.teamgravity.spotify.helper.callback.MusicPlaybackPreparer
 import xyz.teamgravity.spotify.helper.callback.MusicPlayerEventListener
 import xyz.teamgravity.spotify.helper.callback.MusicPlayerNotificationListener
+import xyz.teamgravity.spotify.helper.util.MusicServiceConnection
 import javax.inject.Inject
 
 private const val SERVICE_TAG = "music_service"
@@ -129,6 +130,7 @@ class MusicService : MediaBrowserServiceCompat() {
                             isPlayerInitialized = true
                         }
                     } else {
+                        mediaSession.sendSessionEvent(MusicServiceConnection.NETWORK_ERROR, null)
                         result.sendResult(null)
                     }
                 }
