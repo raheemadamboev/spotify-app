@@ -10,6 +10,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import xyz.teamgravity.spotify.R
+import xyz.teamgravity.spotify.helper.util.MusicServiceConnection
 import javax.inject.Singleton
 
 @Module
@@ -25,4 +26,7 @@ object ApplicationModule {
             .diskCacheStrategy(DiskCacheStrategy.DATA)
     )
 
+    @Singleton
+    @Provides
+    fun provideMusicServiceConnection(@ApplicationContext context: Context) = MusicServiceConnection(context)
 }

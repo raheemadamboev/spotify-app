@@ -25,10 +25,14 @@ import javax.inject.Inject
 
 private const val SERVICE_TAG = "music_service"
 
-private const val MEDIA_ROOT_ID = "media_root_id"
-
 @AndroidEntryPoint
 class MusicService : MediaBrowserServiceCompat() {
+    companion object {
+        var currentSongDuration = 0L
+            private set
+
+        const val MEDIA_ROOT_ID = "media_root_id"
+    }
 
     @Inject
     lateinit var dataSourceFactory: DefaultDataSourceFactory
@@ -54,11 +58,6 @@ class MusicService : MediaBrowserServiceCompat() {
     private var isPlayerInitialized = false
 
     private var currentPlayingSong: MediaMetadataCompat? = null
-
-    companion object {
-        var currentSongDuration = 0L
-            private set
-    }
 
     override fun onCreate() {
         super.onCreate()
