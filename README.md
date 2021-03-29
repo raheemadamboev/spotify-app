@@ -24,7 +24,6 @@ This app is to play music songs with the help of exoplayer from internet using F
 - View binding
 - Git
 - Material Design
-- Barcharts
 - Service
 - Notification
 - Handling configuration changes
