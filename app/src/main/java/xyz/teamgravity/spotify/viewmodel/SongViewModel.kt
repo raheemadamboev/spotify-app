@@ -7,14 +7,14 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import xyz.teamgravity.spotify.helper.extension.currentPlaybackPosition
 import xyz.teamgravity.spotify.helper.util.MusicServiceConnection
-import xyz.teamgravity.spotify.helper.util.currentPlaybackPosition
 import xyz.teamgravity.spotify.service.MusicService
 import javax.inject.Inject
 
 @HiltViewModel
 class SongViewModel @Inject constructor(
-    private val musicServiceConnection: MusicServiceConnection
+    musicServiceConnection: MusicServiceConnection
 ) : ViewModel() {
 
     private val playbackState = musicServiceConnection.playbackState
