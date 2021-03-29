@@ -1,20 +1,26 @@
 package xyz.teamgravity.spotify.fragment
 
 import android.os.Bundle
+import android.support.v4.media.session.PlaybackStateCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.SeekBar
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.RequestManager
 import dagger.hilt.android.AndroidEntryPoint
+import xyz.teamgravity.spotify.R
 import xyz.teamgravity.spotify.databinding.FragmentSongBinding
 import xyz.teamgravity.spotify.helper.util.Status
+import xyz.teamgravity.spotify.helper.util.isPlaying
 import xyz.teamgravity.spotify.helper.util.toSong
 import xyz.teamgravity.spotify.model.SongModel
 import xyz.teamgravity.spotify.viewmodel.MainViewModel
 import xyz.teamgravity.spotify.viewmodel.SongViewModel
+import java.text.SimpleDateFormat
+import java.util.*
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -30,6 +36,9 @@ class SongFragment : Fragment() {
     private val songViewModel by viewModels<SongViewModel>()
 
     private var curPlayingSong: SongModel? = null
+    private var playbackState: PlaybackStateCompat? = null
+
+    private var shouldUpdateSeekBar = true
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentSongBinding.inflate(inflater, container, false)
@@ -43,6 +52,7 @@ class SongFragment : Fragment() {
         mainViewModel = ViewModelProvider(requireActivity()).get(MainViewModel::class.java)
 
         subscribeToObservers()
+        button()
     }
 
     private fun updateTitleAndSongImage(song: SongModel) {
@@ -77,6 +87,96 @@ class SongFragment : Fragment() {
             curPlayingSong = it.toSong()
             updateTitleAndSongImage(curPlayingSong!!)
         }
+
+        mainViewModel.playbackState.observe(viewLifecycleOwner) {
+            playbackState = it
+            if (isAdded) {
+                binding.apply {
+                    playPauseB.setImageResource(if (playbackState?.isPlaying == true) R.drawable.ic_pause else R.drawable.ic_play)
+                    seekBar.progress = it?.position?.toInt() ?: 0
+                }
+            }
+        }
+
+        songViewModel.curPlayerPosition.observe(viewLifecycleOwner) {
+            if (isAdded) {
+                binding.apply {
+                    if (shouldUpdateSeekBar) {
+                        seekBar.progress = it.toInt()
+                        setCurPlayerTimeToTextView(it)
+                    }
+                }
+            }
+        }
+
+        songViewModel.curSongDuration.observe(viewLifecycleOwner) {
+            if (isAdded) {
+                binding.apply {
+                    seekBar.max = it.toInt()
+                    val dateFormat = SimpleDateFormat("mm:ss", Locale.getDefault())
+                    durationT.text = dateFormat.format(it)
+                }
+            }
+        }
+    }
+
+    private fun setCurPlayerTimeToTextView(ms: Long) {
+        val dateFormat = SimpleDateFormat("mm:ss", Locale.getDefault())
+        binding.apply {
+            timeT.text = dateFormat.format(ms)
+        }
+    }
+
+    private fun button() {
+        onPlayPause()
+        onNext()
+        onPrevious()
+        onSeekBar()
+    }
+
+    // play pause button
+    private fun onPlayPause() {
+        binding.playPauseB.setOnClickListener {
+            curPlayingSong?.let { song ->
+                mainViewModel.playOrToggleSong(song, true)
+            }
+        }
+    }
+
+    // next button
+    private fun onNext() {
+        binding.nextB.setOnClickListener {
+            mainViewModel.skipToNextSong()
+        }
+    }
+
+    // previous button
+    private fun onPrevious() {
+        binding.previousB.setOnClickListener {
+            mainViewModel.skipToPreviousSong()
+        }
+    }
+
+    // seek bar change
+    private fun onSeekBar() {
+        binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                if (fromUser) {
+                    setCurPlayerTimeToTextView(progress.toLong())
+                }
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                shouldUpdateSeekBar = false
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                seekBar?.let {
+                    mainViewModel.seekTo(it.progress.toLong())
+                    shouldUpdateSeekBar = true
+                }
+            }
+        })
     }
 
     override fun onDestroyView() {
