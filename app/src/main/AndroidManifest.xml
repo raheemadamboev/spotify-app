@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="xyz.teamgravity.spotify">
 
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
     <application
         android:name=".injection.App"
         android:allowBackup="true"
@@ -20,9 +22,7 @@
             </intent-filter>
         </activity>
 
-        <service
-            android:name=".service.MusicService"
-            android:exported="false">
+        <service android:name=".service.MusicService">
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
