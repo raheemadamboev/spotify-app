@@ -6,7 +6,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import xyz.teamgravity.spotify.helper.util.*
+import xyz.teamgravity.spotify.helper.extension.isPlayEnabled
+import xyz.teamgravity.spotify.helper.extension.isPlaying
+import xyz.teamgravity.spotify.helper.extension.isPrepared
+import xyz.teamgravity.spotify.helper.util.MusicServiceConnection
+import xyz.teamgravity.spotify.helper.util.Resource
 import xyz.teamgravity.spotify.model.SongModel
 import xyz.teamgravity.spotify.service.MusicService
 import javax.inject.Inject
