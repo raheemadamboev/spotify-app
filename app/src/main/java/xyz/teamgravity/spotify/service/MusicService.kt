@@ -43,10 +43,6 @@ class MusicService : MediaBrowserServiceCompat() {
     @Inject
     lateinit var firebaseMusicSource: FirebaseMusicSource
 
-    // special coroutine scope for service
-    private val serviceJob = Job()
-    private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
-
     private lateinit var musicNotificationManager: MusicNotificationManager
 
     private lateinit var mediaSession: MediaSessionCompat
@@ -54,9 +50,13 @@ class MusicService : MediaBrowserServiceCompat() {
 
     private lateinit var musicPlayerEventListener: MusicPlayerEventListener
 
-    var isForegroundService = false
-    private var isPlayerInitialized = false
+    // special coroutine scope for service
+    private val serviceJob = Job()
+    private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
 
+    var isForegroundService = false
+
+    private var isPlayerInitialized = false
     private var currentPlayingSong: MediaMetadataCompat? = null
 
     override fun onCreate() {
@@ -86,7 +86,6 @@ class MusicService : MediaBrowserServiceCompat() {
             currentSongDuration = exoPlayer.duration
         }
 
-
         val musicPlaybackPreparer = MusicPlaybackPreparer(firebaseMusicSource) {
             // every time user chooses new song
             currentPlayingSong = it
@@ -109,20 +108,22 @@ class MusicService : MediaBrowserServiceCompat() {
     private fun preparePlayer(songs: List<MediaMetadataCompat>, itemToPlay: MediaMetadataCompat?, playNow: Boolean) {
         val currentSongIndex = if (currentPlayingSong == null) 0 else songs.indexOf(itemToPlay)
 
-        exoPlayer.prepare(firebaseMusicSource.asMediaSource(dataSourceFactory))
-        exoPlayer.seekTo(currentSongIndex, 0L)
-        exoPlayer.playWhenReady = playNow
+        exoPlayer.apply {
+            prepare(firebaseMusicSource.asMediaSource(dataSourceFactory))
+            seekTo(currentSongIndex, 0L)
+            playWhenReady = playNow
+        }
     }
 
-    override fun onGetRoot(clientPackageName: String, clientUid: Int, rootHints: Bundle?): BrowserRoot? {
+    override fun onGetRoot(clientPackageName: String, clientUid: Int, rootHints: Bundle?): BrowserRoot {
         return BrowserRoot(MEDIA_ROOT_ID, null)
     }
 
     override fun onLoadChildren(parentId: String, result: Result<MutableList<MediaBrowserCompat.MediaItem>>) {
         when (parentId) {
             MEDIA_ROOT_ID -> {
-                val resultsSent = firebaseMusicSource.whenReady { initiliazed ->
-                    if (initiliazed) {
+                val resultsSent = firebaseMusicSource.whenReady { initialized ->
+                    if (initialized) {
                         result.sendResult(firebaseMusicSource.asMediaItems())
                         if (!isPlayerInitialized && firebaseMusicSource.songs.isNotEmpty()) {
                             preparePlayer(firebaseMusicSource.songs, firebaseMusicSource.songs[0], false)
