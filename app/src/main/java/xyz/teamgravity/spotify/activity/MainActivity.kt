@@ -1,18 +1,145 @@
 package xyz.teamgravity.spotify.activity
 
 import android.os.Bundle
+import android.support.v4.media.session.PlaybackStateCompat
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.viewpager2.widget.ViewPager2
+import com.bumptech.glide.RequestManager
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
+import xyz.teamgravity.spotify.R
 import xyz.teamgravity.spotify.databinding.ActivityMainBinding
+import xyz.teamgravity.spotify.helper.adapter.SwipeSongAdapter
+import xyz.teamgravity.spotify.helper.util.Status
+import xyz.teamgravity.spotify.helper.util.isPlaying
+import xyz.teamgravity.spotify.helper.util.toSong
+import xyz.teamgravity.spotify.model.SongModel
+import xyz.teamgravity.spotify.viewmodel.MainViewModel
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
+    @Inject
+    lateinit var adapter: SwipeSongAdapter
+
+    @Inject
+    lateinit var glide: RequestManager
+
+    private val viewModel by viewModels<MainViewModel>()
+
+    private var curPlayingSong: SongModel? = null
+    private var playbackState: PlaybackStateCompat? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        viewPager()
+        subscribeToObservers()
+        button()
+    }
+
+    private fun viewPager() {
+        binding.apply {
+            songViewPager.adapter = adapter
+        }
+    }
+
+    private fun button() {
+        onPlayPause()
+    }
+
+    private fun switchViewPagerToCurrentSong(song: SongModel) {
+        binding.apply {
+            val newItemIndex = adapter.songs.indexOf(song)
+
+            if (newItemIndex != -1) {
+                songViewPager.currentItem = newItemIndex
+                curPlayingSong = song
+            }
+
+            // swipe bitch
+            songViewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+                override fun onPageSelected(position: Int) {
+                    super.onPageSelected(position)
+                    if (playbackState?.isPlaying == true) {
+                        viewModel.playOrToggleSong(adapter.songs[position])
+                    } else {
+                        curPlayingSong = adapter.songs[position]
+                    }
+                }
+            })
+        }
+    }
+
+    private fun subscribeToObservers() {
+        binding.apply {
+            // all song for view pager to know
+            viewModel.mediaItems.observe(this@MainActivity) {
+                it?.let { result ->
+                    when (result.status) {
+                        Status.SUCCESS -> {
+                            result.data?.let { songs ->
+                                adapter.songs = songs
+
+                                // first load new first song
+                                if (songs.isNotEmpty()) {
+                                    glide.load((curPlayingSong ?: songs[0]).imageUrl).into(imageI)
+                                }
+                                switchViewPagerToCurrentSong(curPlayingSong ?: return@observe)
+                            }
+                        }
+
+                        Status.ERROR -> Unit
+                        Status.LOADING -> Unit
+                    }
+                }
+            }
+
+            viewModel.curPlayingSong.observe(this@MainActivity) {
+                if (it == null) return@observe
+
+                curPlayingSong = it.toSong()
+                glide.load(curPlayingSong?.imageUrl).into(imageI)
+                switchViewPagerToCurrentSong(curPlayingSong ?: return@observe)
+            }
+
+            viewModel.playbackState.observe(this@MainActivity) {
+                playbackState = it
+                playPauseB.setImageResource(if (playbackState?.isPlaying == true) R.drawable.ic_pause else R.drawable.ic_play)
+            }
+
+            viewModel.isConnected.observe(this@MainActivity) {
+                it?.getContentIfNotHandled()?.let { result ->
+                    when (result.status) {
+                        Status.ERROR ->
+                            Snackbar.make(root, result.message ?: "Unknown error happened", Snackbar.LENGTH_LONG).show()
+                        else -> Unit
+                    }
+                }
+            }
+
+            viewModel.networkError.observe(this@MainActivity) {
+                it?.getContentIfNotHandled()?.let { result ->
+                    when (result.status) {
+                        Status.ERROR ->
+                            Snackbar.make(root, result.message ?: "Unknown error happened", Snackbar.LENGTH_LONG).show()
+                        else -> Unit
+                    }
+                }
+            }
+        }
+    }
+
+    // play pause button
+    private fun onPlayPause() {
+        binding.playPauseB.setOnClickListener {
+            curPlayingSong?.let { viewModel.playOrToggleSong(it, true) }
+        }
     }
 }

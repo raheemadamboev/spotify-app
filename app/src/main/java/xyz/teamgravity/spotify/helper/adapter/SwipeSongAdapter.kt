@@ -8,8 +8,9 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import xyz.teamgravity.spotify.databinding.CardSwipeBinding
 import xyz.teamgravity.spotify.model.SongModel
+import javax.inject.Inject
 
-class SwipeSongAdapter : RecyclerView.Adapter<SwipeSongAdapter.SongViewHolder>() {
+class SwipeSongAdapter @Inject constructor() : RecyclerView.Adapter<SwipeSongAdapter.SongViewHolder>() {
 
     var songs: List<SongModel>
         get() = differ.currentList
