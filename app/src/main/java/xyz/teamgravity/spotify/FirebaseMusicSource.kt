@@ -18,6 +18,22 @@ class FirebaseMusicSource @Inject constructor(
 
     var songs = emptyList<MediaMetadataCompat>()
 
+    private val onReadyListeners = mutableListOf<(Boolean) -> Unit>()
+
+    private var state = State.STATE_CREATED
+        set(value) {
+            if (value == State.STATE_INITIALIZED || value == State.STATE_ERROR) {
+                synchronized(onReadyListeners) {
+                    field = value
+                    onReadyListeners.forEach { listener ->
+                        listener(state == State.STATE_INITIALIZED)
+                    }
+                }
+            } else {
+                field = value
+            }
+        }
+
     suspend fun fetchMediaData() = withContext(Dispatchers.IO) {
         state = State.STATE_INITIALIZING
 
@@ -63,32 +79,15 @@ class FirebaseMusicSource @Inject constructor(
         MediaBrowserCompat.MediaItem(desc, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE)
     }.toMutableList()
 
-    private val onReadyListeners = mutableListOf<(Boolean) -> Unit>()
-
-    private var state = State.STATE_CREATED
-        set(value) {
-            if (value == State.STATE_INITIALIZED || value == State.STATE_ERROR) {
-                synchronized(onReadyListeners) {
-                    field = value
-                    onReadyListeners.forEach { listener ->
-                        listener(state == State.STATE_INITIALIZED)
-                    }
-                }
-            } else {
-                field = value
-            }
-        }
-
     fun whenReady(action: (Boolean) -> Unit): Boolean {
-        if (state == State.STATE_CREATED || state == State.STATE_INITIALIZING) {
+        return if (state == State.STATE_CREATED || state == State.STATE_INITIALIZING) {
             onReadyListeners += action
-            return false
+            false
         } else {
             action(state == State.STATE_INITIALIZED)
-            return true
+            true
         }
     }
-
 }
 
 enum class State {
