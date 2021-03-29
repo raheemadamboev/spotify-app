@@ -1,4 +1,4 @@
-package xyz.teamgravity.spotify.helper.util
+package xyz.teamgravity.spotify.helper.extension
 
 import android.os.SystemClock
 import android.support.v4.media.session.PlaybackStateCompat
