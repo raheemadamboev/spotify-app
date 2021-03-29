@@ -2,12 +2,17 @@ package xyz.teamgravity.spotify.activity
 
 import android.os.Bundle
 import android.support.v4.media.session.PlaybackStateCompat
+import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.navigation.NavController
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.findNavController
 import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.RequestManager
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
+import xyz.teamgravity.spotify.NavGraphDirections
 import xyz.teamgravity.spotify.R
 import xyz.teamgravity.spotify.databinding.ActivityMainBinding
 import xyz.teamgravity.spotify.helper.adapter.SwipeSongAdapter
@@ -22,6 +27,8 @@ import javax.inject.Inject
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+
+    private lateinit var navController: NavController
 
     @Inject
     lateinit var adapter: SwipeSongAdapter
@@ -39,14 +46,31 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        navController()
         viewPager()
         subscribeToObservers()
         button()
     }
 
+    private fun navController() {
+        navController = (supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment).findNavController()
+
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            when (destination.id) {
+                R.id.songFragment -> hideBottomBar()
+                else -> showBottomBar()
+            }
+        }
+    }
+
     private fun viewPager() {
         binding.apply {
             songViewPager.adapter = adapter
+
+            // song click
+            adapter.setOnItemClickListener {
+                navController.navigate(NavGraphDirections.actionGlobalSongFragment())
+            }
         }
     }
 
@@ -133,6 +157,22 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
+        }
+    }
+
+    private fun hideBottomBar() {
+        binding.apply {
+            imageI.visibility = View.GONE
+            songViewPager.visibility = View.GONE
+            playPauseB.visibility = View.GONE
+        }
+    }
+
+    private fun showBottomBar() {
+        binding.apply {
+            imageI.visibility = View.VISIBLE
+            songViewPager.visibility = View.VISIBLE
+            playPauseB.visibility = View.VISIBLE
         }
     }
 

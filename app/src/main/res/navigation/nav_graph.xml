@@ -10,4 +10,13 @@
         android:name="xyz.teamgravity.spotify.fragment.HomeFragment"
         android:label="fragment_home"
         tools:layout="@layout/fragment_home" />
+    <fragment
+        android:id="@+id/songFragment"
+        android:name="xyz.teamgravity.spotify.fragment.SongFragment"
+        android:label="fragment_song"
+        tools:layout="@layout/fragment_song" />
+
+    <action
+        android:id="@+id/action_global_songFragment"
+        app:destination="@id/songFragment" />
 </navigation>
