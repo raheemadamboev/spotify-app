@@ -34,10 +34,13 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel = ViewModelProvider(requireActivity()).get(MainViewModel::class.java)
-
+        lateInIt()
         recyclerView()
         subscribeToObservers()
+    }
+
+    private fun lateInIt() {
+        viewModel = ViewModelProvider(requireActivity()).get(MainViewModel::class.java)
     }
 
     private fun recyclerView() {

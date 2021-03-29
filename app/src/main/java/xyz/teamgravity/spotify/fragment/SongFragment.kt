@@ -32,8 +32,12 @@ class SongFragment : Fragment() {
     @Inject
     lateinit var glide: RequestManager
 
-    private lateinit var mainViewModel: MainViewModel
+    @Inject
+    lateinit var minuteFormatter: SimpleDateFormat
+
     private val songViewModel by viewModels<SongViewModel>()
+
+    private lateinit var mainViewModel: MainViewModel
 
     private var curPlayingSong: SongModel? = null
     private var playbackState: PlaybackStateCompat? = null
@@ -49,19 +53,13 @@ class SongFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        mainViewModel = ViewModelProvider(requireActivity()).get(MainViewModel::class.java)
-
+        lateInIt()
         subscribeToObservers()
         button()
     }
 
-    private fun updateTitleAndSongImage(song: SongModel) {
-        val title = "${song.name} - ${song.songWriter}"
-
-        binding.apply {
-            nameT.text = title
-            glide.load(song.imageUrl).into(imageI)
-        }
+    private fun lateInIt() {
+        mainViewModel = ViewModelProvider(requireActivity()).get(MainViewModel::class.java)
     }
 
     private fun subscribeToObservers() {
@@ -103,7 +101,7 @@ class SongFragment : Fragment() {
                 binding.apply {
                     if (shouldUpdateSeekBar) {
                         seekBar.progress = it.toInt()
-                        setCurPlayerTimeToTextView(it)
+                        setCurrentPlayerTimeToTextView(it)
                     }
                 }
             }
@@ -113,18 +111,23 @@ class SongFragment : Fragment() {
             if (isAdded) {
                 binding.apply {
                     seekBar.max = it.toInt()
-                    val dateFormat = SimpleDateFormat("mm:ss", Locale.getDefault())
-                    durationT.text = dateFormat.format(it)
+                    durationT.text = minuteFormatter.format(it)
                 }
             }
         }
     }
 
-    private fun setCurPlayerTimeToTextView(ms: Long) {
-        val dateFormat = SimpleDateFormat("mm:ss", Locale.getDefault())
+    private fun updateTitleAndSongImage(song: SongModel) {
+        val title = "${song.name} - ${song.songWriter}"
+
         binding.apply {
-            timeT.text = dateFormat.format(ms)
+            nameT.text = title
+            glide.load(song.imageUrl).into(imageI)
         }
+    }
+
+    private fun setCurrentPlayerTimeToTextView(ms: Long) {
+        binding.timeT.text = minuteFormatter.format(ms)
     }
 
     private fun button() {
@@ -162,7 +165,7 @@ class SongFragment : Fragment() {
         binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (fromUser) {
-                    setCurPlayerTimeToTextView(progress.toLong())
+                    setCurrentPlayerTimeToTextView(progress.toLong())
                 }
             }
 

@@ -28,8 +28,6 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
-    private lateinit var navController: NavController
-
     @Inject
     lateinit var adapter: SwipeSongAdapter
 
@@ -37,6 +35,8 @@ class MainActivity : AppCompatActivity() {
     lateinit var glide: RequestManager
 
     private val viewModel by viewModels<MainViewModel>()
+
+    private lateinit var navController: NavController
 
     private var curPlayingSong: SongModel? = null
     private var playbackState: PlaybackStateCompat? = null
@@ -74,35 +74,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun button() {
-        onPlayPause()
-    }
-
-    private fun switchViewPagerToCurrentSong(song: SongModel) {
-        binding.apply {
-            val newItemIndex = adapter.songs.indexOf(song)
-
-            if (newItemIndex != -1) {
-                songViewPager.currentItem = newItemIndex
-                curPlayingSong = song
-            }
-
-            // swipe bitch
-            songViewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-                override fun onPageSelected(position: Int) {
-                    super.onPageSelected(position)
-                    if (playbackState?.isPlaying == true) {
-                        viewModel.playOrToggleSong(adapter.songs[position])
-                    } else {
-                        curPlayingSong = adapter.songs[position]
-                    }
-                }
-            })
-        }
-    }
-
     private fun subscribeToObservers() {
         binding.apply {
+
             // all song for view pager to know
             viewModel.mediaItems.observe(this@MainActivity) {
                 it?.let { result ->
@@ -125,6 +99,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
+            // current playing song
             viewModel.curPlayingSong.observe(this@MainActivity) {
                 if (it == null) return@observe
 
@@ -133,11 +108,13 @@ class MainActivity : AppCompatActivity() {
                 switchViewPagerToCurrentSong(curPlayingSong ?: return@observe)
             }
 
+            // playing or not
             viewModel.playbackState.observe(this@MainActivity) {
                 playbackState = it
                 playPauseB.setImageResource(if (playbackState?.isPlaying == true) R.drawable.ic_pause else R.drawable.ic_play)
             }
 
+            // is server connection error?
             viewModel.isConnected.observe(this@MainActivity) {
                 it?.getContentIfNotHandled()?.let { result ->
                     when (result.status) {
@@ -148,6 +125,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
+            // network error?
             viewModel.networkError.observe(this@MainActivity) {
                 it?.getContentIfNotHandled()?.let { result ->
                     when (result.status) {
@@ -157,6 +135,33 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
+        }
+    }
+
+    private fun button() {
+        onPlayPause()
+    }
+
+    private fun switchViewPagerToCurrentSong(song: SongModel) {
+        binding.apply {
+            val newItemIndex = adapter.songs.indexOf(song)
+
+            if (newItemIndex != -1) {
+                songViewPager.currentItem = newItemIndex
+                curPlayingSong = song
+            }
+
+            // play music when viewpager is changed
+            songViewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+                override fun onPageSelected(position: Int) {
+                    super.onPageSelected(position)
+                    if (playbackState?.isPlaying == true) {
+                        viewModel.playOrToggleSong(adapter.songs[position])
+                    } else {
+                        curPlayingSong = adapter.songs[position]
+                    }
+                }
+            })
         }
     }
 
