@@ -37,9 +37,7 @@ class SwipeSongAdapter @Inject constructor() : RecyclerView.Adapter<SwipeSongAda
 
         @SuppressLint("SetTextI18n")
         fun bind(model: SongModel) {
-            binding.apply {
-                primaryT.text = "${model.name} - ${model.songWriter}"
-            }
+            binding.primaryT.text = "${model.name} - ${model.songWriter}"
         }
     }
 
