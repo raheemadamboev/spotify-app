@@ -1,4 +1,4 @@
-package xyz.teamgravity.spotify
+package xyz.teamgravity.spotify.helper.util
 
 import android.app.PendingIntent
 import android.content.Context
@@ -11,6 +11,7 @@ import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
+import xyz.teamgravity.spotify.R
 
 class MusicNotificationManager(
     private val context: Context,

@@ -15,8 +15,8 @@ import com.google.android.exoplayer2.ext.mediasession.TimelineQueueNavigator
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
-import xyz.teamgravity.spotify.FirebaseMusicSource
-import xyz.teamgravity.spotify.MusicNotificationManager
+import xyz.teamgravity.spotify.helper.firebase.FirebaseMusicSource
+import xyz.teamgravity.spotify.helper.util.MusicNotificationManager
 import xyz.teamgravity.spotify.helper.callback.MusicPlaybackPreparer
 import xyz.teamgravity.spotify.helper.callback.MusicPlayerEventListener
 import xyz.teamgravity.spotify.helper.callback.MusicPlayerNotificationListener

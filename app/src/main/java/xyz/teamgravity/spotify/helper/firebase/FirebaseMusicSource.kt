@@ -1,4 +1,4 @@
-package xyz.teamgravity.spotify
+package xyz.teamgravity.spotify.helper.firebase
 
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaDescriptionCompat
@@ -9,7 +9,6 @@ import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import xyz.teamgravity.spotify.helper.firebase.Firestore
 import javax.inject.Inject
 
 class FirebaseMusicSource @Inject constructor(
