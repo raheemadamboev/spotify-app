@@ -1,10 +1,11 @@
 package xyz.teamgravity.spotify.activity
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import xyz.teamgravity.spotify.R
+import androidx.appcompat.app.AppCompatActivity
+import dagger.hilt.android.AndroidEntryPoint
 import xyz.teamgravity.spotify.databinding.ActivityMainBinding
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
