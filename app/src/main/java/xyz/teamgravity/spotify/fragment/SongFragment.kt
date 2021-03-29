@@ -14,8 +14,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import xyz.teamgravity.spotify.R
 import xyz.teamgravity.spotify.databinding.FragmentSongBinding
 import xyz.teamgravity.spotify.helper.util.Status
-import xyz.teamgravity.spotify.helper.util.isPlaying
-import xyz.teamgravity.spotify.helper.util.toSong
+import xyz.teamgravity.spotify.helper.extension.isPlaying
+import xyz.teamgravity.spotify.helper.extension.toSong
 import xyz.teamgravity.spotify.model.SongModel
 import xyz.teamgravity.spotify.viewmodel.MainViewModel
 import xyz.teamgravity.spotify.viewmodel.SongViewModel
