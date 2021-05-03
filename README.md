@@ -26,4 +26,5 @@ This app is to play music songs with the help of exoplayer from internet using F
 - Material Design
 - Service
 - Notification
+- Firebase
 - Handling configuration changes
