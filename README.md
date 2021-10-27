@@ -1,5 +1,5 @@
 # spotify-app
-This app is to play music from server
+This app is to play music from server 
 
 **Spotify**
 
